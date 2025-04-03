@@ -12,13 +12,21 @@ pub fn clayColorToRaylibColor(color: cl.Color) rl.Color {
     };
 }
 
-pub var raylib_fonts: [10]?rl.Font = .{null} ** 10;
+pub fn RaylibColorToclayColor(color: rl.Color) cl.Color {
+    return cl.Color{
+        @floatFromInt(color.r),
+        @floatFromInt(color.g),
+        @floatFromInt(color.b),
+        @floatFromInt(color.a),
+    };
+}
 
 pub fn clayRaylibRender(render_commands: *cl.ClayArray(cl.RenderCommand), allocator: std.mem.Allocator) !void {
     var i: usize = 0;
     while (i < render_commands.length) : (i += 1) {
         const render_command = cl.renderCommandArrayGet(render_commands, @intCast(i));
         const bounding_box = render_command.bounding_box;
+		//std.debug.print();
         switch (render_command.command_type) {
             .none => {},
             .text => {
@@ -27,23 +35,16 @@ pub fn clayRaylibRender(render_commands: *cl.ClayArray(cl.RenderCommand), alloca
                 // Raylib uses standard C strings so isn't compatible with cheap slices, we need to clone the string to append null terminator
                 const cloned = try allocator.dupeZ(u8, text);
                 defer allocator.free(cloned);
-                const fontToUse: rl.Font = raylib_fonts[config.font_id].?;
                 rl.setTextLineSpacing(config.line_height);
-                rl.drawTextEx(
-                    fontToUse,
-                    cloned,
-                    rl.Vector2{ .x = bounding_box.x, .y = bounding_box.y },
-                    @floatFromInt(config.font_size),
-                    @floatFromInt(config.letter_spacing),
-                    clayColorToRaylibColor(config.text_color),
-                );
+				rl.drawText(cloned, @intFromFloat(bounding_box.x), @intFromFloat(bounding_box.y),
+				config.font_size, clayColorToRaylibColor(config.text_color));
             },
             .image => {
                 const config = render_command.render_data.image;
-
                 const image_texture: *const rl.Texture2D = @ptrCast(
                     @alignCast(config.image_data),
                 );
+std.debug.print("{?}\n", .{&image_texture});
                 rl.drawTextureEx(
                     image_texture.*,
                     rl.Vector2{ .x = bounding_box.x, .y = bounding_box.y },
@@ -193,47 +194,11 @@ pub fn clayRaylibRender(render_commands: *cl.ClayArray(cl.RenderCommand), alloca
 }
 
 pub fn measureText(clay_text: []const u8, config: *cl.TextElementConfig, _: void) cl.Dimensions {
-    const font = raylib_fonts[config.font_id].?;
-    const text: []const u8 = clay_text;
-    const font_size: f32 = @floatFromInt(config.font_size);
-    const letter_spacing: f32 = @floatFromInt(config.letter_spacing);
-    const line_height = config.line_height;
-
-    var temp_byte_counter: usize = 0;
-    var byte_counter: usize = 0;
-    var text_width: f32 = 0.0;
-    var temp_text_width: f32 = 0.0;
-    var text_height: f32 = font_size;
-    const scale_factor: f32 = font_size / @as(f32, @floatFromInt(font.baseSize));
-
-    var utf8 = std.unicode.Utf8View.initUnchecked(text).iterator();
-
-    while (utf8.nextCodepoint()) |codepoint| {
-        byte_counter += std.unicode.utf8CodepointSequenceLength(codepoint) catch 1;
-        const index: usize = @intCast(
-            rl.getGlyphIndex(font, @as(i32, @intCast(codepoint))),
-        );
-
-        if (codepoint != '\n') {
-            if (font.glyphs[index].advanceX != 0) {
-                text_width += @floatFromInt(font.glyphs[index].advanceX);
-            } else {
-                text_width += font.recs[index].width + @as(f32, @floatFromInt(font.glyphs[index].offsetX));
-            }
-        } else {
-            if (temp_text_width < text_width) temp_text_width = text_width;
-            byte_counter = 0;
-            text_width = 0;
-            text_height += font_size + @as(f32, @floatFromInt(line_height));
-        }
-
-        if (temp_byte_counter < byte_counter) temp_byte_counter = byte_counter;
-    }
-
-    if (temp_text_width < text_width) temp_text_width = text_width;
-
+    const font_size: i32 = config.font_size;
+	var copy = [_:0]u8{0} ** 128;
+	std.mem.copyForwards(u8, &copy, clay_text);
     return cl.Dimensions{
-        .h = text_height,
-        .w = temp_text_width * scale_factor + (@as(f32, @floatFromInt(temp_byte_counter)) - 1) * letter_spacing,
+        .h = @floatFromInt(font_size),
+        .w = @floatFromInt(rl.measureText(&copy, font_size)),
     };
 }
