@@ -44,7 +44,6 @@ pub fn clayRaylibRender(render_commands: *cl.ClayArray(cl.RenderCommand), alloca
                 const image_texture: *const rl.Texture2D = @ptrCast(
                     @alignCast(config.image_data),
                 );
-std.debug.print("{?}\n", .{&image_texture});
                 rl.drawTextureEx(
                     image_texture.*,
                     rl.Vector2{ .x = bounding_box.x, .y = bounding_box.y },

@@ -7,7 +7,8 @@ const rgui = @import("raygui");
 const Imagem = struct {
     path: []const u8,
     og: rl.Texture,
-	scaled: rl.Texture,
+	nn_small: rl.Texture,
+	nn_expand: rl.Texture,
 };
 
 var camera = rl.Camera2D{
@@ -38,7 +39,8 @@ pub fn main() !void {
 					try images.append(allocator, .{
 						.path = try allocator.dupeZ(u8, std.mem.span(droppedFiles.paths[i])),
 						.og = tx,
-						.scaled = try rs.nearest_neighbor(&imgToScale)
+						.nn_small = try rs.nearest_neighbor_small(&imgToScale),
+						.nn_expand = try rs.nearest_neighbor_expand(&imgToScale),
 					});
 				} else |err| switch (err) {
 					else => {},
@@ -53,20 +55,28 @@ pub fn main() !void {
 		else if (rl.isKeyPressed(.minus)) {
 			camera.zoom /= 1.5;
 		}
-		camera.target.x += rl.getMouseWheelMoveV().x * 2000 * rl.getFrameTime() * (1 / camera.zoom);
-		camera.target.y += rl.getMouseWheelMoveV().y * 2000 * rl.getFrameTime() * (1 / camera.zoom);
+
+		if (rl.isMouseButtonDown(.left)) {
+			camera.target.x -= rl.getMouseDelta().x;
+			camera.target.y -= rl.getMouseDelta().y;
+		}
+
+		camera.target.x += rl.getMouseWheelMoveV().x * 20000 * rl.getFrameTime() * (1 / camera.zoom);
+		camera.target.y -= rl.getMouseWheelMoveV().y * 20000 * rl.getFrameTime() * (1 / camera.zoom);
 
 		rl.beginDrawing();
 		rl.beginMode2D(camera);
 		defer rl.endMode2D();
 		defer rl.endDrawing();
 
-		rl.clearBackground(.ray_white);
+		rl.clearBackground(.gray);
 
 		var yOffset: i32 = 0;
-		for (images.items(.og)) |tx| {
-			rl.drawTexture(tx, 0, yOffset, .white);
-			yOffset += tx.height;
+		const slice = images.slice();
+		for (slice.items(.og), slice.items(.nn_expand)) |tx, scaled| {
+			rl.drawTexture(tx, 0 - tx.width, yOffset, .white);
+			rl.drawTexture(scaled, 0, yOffset, .white);
+			yOffset += if (tx.height > scaled.height) tx.height else scaled.height;
 		}
 	}
 }
