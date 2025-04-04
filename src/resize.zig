@@ -44,10 +44,10 @@ pub fn nearest_neighbor_expand(image: *rl.Image) !rl.Texture {
 			new_colors[j * new_width * 2 + i * 2].b = old_colors[j * old_width + i].b;
 			new_colors[j * new_width * 2 + i * 2].a = old_colors[j * old_width + i].a;
 
-			new_colors[j * new_width * 2 + i * 2 + 1].r = old_colors[j * old_width + i].r;
-			new_colors[j * new_width * 2 + i * 2 + 1].g = old_colors[j * old_width + i].g;
-			new_colors[j * new_width * 2 + i * 2 + 1].b = old_colors[j * old_width + i].b;
-			new_colors[j * new_width * 2 + i * 2 + 1].a = old_colors[j * old_width + i].a;
+			new_colors[j * new_width * 2 + (i + 1) * 2].r = old_colors[j * old_width + i].r;
+			new_colors[j * new_width * 2 + (i + 1) * 2].g = old_colors[j * old_width + i].g;
+			new_colors[j * new_width * 2 + (i + 1) * 2].b = old_colors[j * old_width + i].b;
+			new_colors[j * new_width * 2 + (i + 1) * 2].a = old_colors[j * old_width + i].a;
 
 			if (j + 1 < old_height) {
 				new_colors[(j + 1) * new_width * 2 + i * 2].r = old_colors[j * old_width + i].r;
@@ -55,10 +55,10 @@ pub fn nearest_neighbor_expand(image: *rl.Image) !rl.Texture {
 				new_colors[(j + 1) * new_width * 2 + i * 2].b = old_colors[j * old_width + i].b;
 				new_colors[(j + 1) * new_width * 2 + i * 2].a = old_colors[j * old_width + i].a;
 
-				new_colors[(j + 1) * new_width * 2 + i * 2 + 1].r = old_colors[j * old_width + i].r;
-				new_colors[(j + 1) * new_width * 2 + i * 2 + 1].g = old_colors[j * old_width + i].g;
-				new_colors[(j + 1) * new_width * 2 + i * 2 + 1].b = old_colors[j * old_width + i].b;
-				new_colors[(j + 1) * new_width * 2 + i * 2 + 1].a = old_colors[j * old_width + i].a;
+				new_colors[(j + 1) * new_width * 2 + (i + 1) * 2].r = old_colors[j * old_width + i].r;
+				new_colors[(j + 1) * new_width * 2 + (i + 1) * 2].g = old_colors[j * old_width + i].g;
+				new_colors[(j + 1) * new_width * 2 + (i + 1) * 2].b = old_colors[j * old_width + i].b;
+				new_colors[(j + 1) * new_width * 2 + (i + 1) * 2].a = old_colors[j * old_width + i].a;
 			}
 		}
 	}
