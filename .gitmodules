@@ -1,0 +1,6 @@
+[submodule "interpolacao"]
+	path = interpolacao
+	url = ./interpolacao
+[submodule "rotulacao"]
+	path = rotulacao
+	url = ./rotulacao
